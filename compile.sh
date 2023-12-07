@@ -1,0 +1,1 @@
+pyinstaller --onefile --windowed --icon=./static/icon.ico --name "OSFC TEST Performance" main.py
