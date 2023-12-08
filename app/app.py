@@ -10,7 +10,7 @@ from .server.ping import isReachable
 from .user.auth import run_bulk_authorization
 from .user.requests import run_bulk_users_requests
 
-from .utils import center_window
+from .utils import center_window, prepare_time_to_format, open_data_example_link
 
 
 class AppWindow:
@@ -83,6 +83,12 @@ class AppWindow:
         self.draw_circle(obj_circle=self.requests_status_circle,
                          obj_label=self.requests_status_circle_label, text="Requests Status")
 
+        # Get work time of authorizations and requests
+        self.auth_time_label = tk.Label(self.toolbar_frame, text="Authorization time:", fg="black")
+        self.auth_time_label.grid(row=0, column=2, padx=(50, 20), sticky="w")
+        self.requests_time_label = tk.Label(self.toolbar_frame, text="Requests time:", fg="black")
+        self.requests_time_label.grid(row=1, column=2, padx=(50, 20), sticky="w")
+
         # Footer Frame
         self.footer_frame = tk.Frame(root, padx=0, pady=10)
         self.footer_frame.grid(row=3, column=0, columnspan=4, sticky="n")
@@ -94,6 +100,9 @@ class AppWindow:
         self.change_host_button = tk.Button(self.footer_frame, text="Change Host", 
                                             command=self.change_host)
         self.change_host_button.grid(row=0, column=1, pady=(10, 10), padx=5)
+        self.reset_window_button = tk.Button(self.footer_frame, text="Data Files Example", 
+                                             command=open_data_example_link)
+        self.reset_window_button.grid(row=0, column=2, pady=(10, 10), padx=5)
 
     def change_host(self):
         self.root.destroy()
@@ -112,6 +121,8 @@ class AppWindow:
         self.auth_status_circle_label.config(text="")
         self.requests_status_circle_label.config(text="")
         self.requests_status_circle_label.config(text="")
+        self.auth_time_label.config(text="Authorization time: ")
+        self.requests_time_label.config(text="Requests time: ")
         self.draw_circle(obj_circle=self.auth_status_circle,
                          obj_label=self.auth_status_circle_label, text="Auth Status")
         self.draw_circle(obj_circle=self.requests_status_circle,
@@ -163,11 +174,13 @@ class AppWindow:
                          obj_label=self.requests_status_circle_label)
 
     def authorization_users(self):
+        self.auth_time_label.config(text="Authorization time: Pending complete...")
         thread = Thread(target=run_bulk_authorization, args=(self.auth_file_path.get(), self.handle_auth_results,))
         thread.start()
         self.root.after(100, self.check_background_auth_status, thread)
 
     def send_requests(self):
+        self.requests_time_label.config(text="Requests time: Pending complete...")
         thread = Thread(target=run_bulk_users_requests, args=(self.requests_per_user_file_path.get(), self.handle_requests_results,))
         thread.start()
         self.root.after(100, self.check_background_requests_status, thread)
@@ -176,6 +189,8 @@ class AppWindow:
         if thread.is_alive():
             self.root.after(100, self.check_background_auth_status, thread)
         else:
+            self.auth_time_label.config(
+                text=f"Authorization time: {prepare_time_to_format(CustomStore.users_works_time.get('bulk_authorization', 'repeat again'))}")
             self.change_allows_to_button(False, self.authorization_users_button)
             self.change_allows_to_button(True, self.send_requests_button)
 
@@ -183,6 +198,8 @@ class AppWindow:
         if thread.is_alive():
             self.root.after(100, self.check_background_requests_status, thread)
         else:
+            self.requests_time_label.config(
+                text=f"Requests time: {prepare_time_to_format(CustomStore.users_works_time.get('bulk_requests', 'repeat again'))}")
             self.change_allows_to_button(False, self.authorization_users_button)
             self.change_allows_to_button(True, self.send_requests_button)
 

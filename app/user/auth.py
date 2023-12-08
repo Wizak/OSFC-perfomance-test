@@ -28,5 +28,4 @@ def run_bulk_authorization(user_data_file_path, handle_results):
     asyncio.run(bulk_authorization(users, handle_results))
     end_time = time.time()
     CustomStore.users_works_time["bulk_authorization"] = abs(start_time - end_time)
-    print(CustomStore.users_works_time)
     return True
